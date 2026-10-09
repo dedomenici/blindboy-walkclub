@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Blindboy Walkclub</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#111;color:#f4f1ea;font-family:system-ui,sans-serif}
+form{background:#1c1c1c;border:2px solid #C8102E;padding:28px;width:min(320px,86vw);text-align:center}
+h1{margin:0 0 4px;font-size:1.6rem;letter-spacing:.04em;text-transform:uppercase}
+p{margin:0 0 16px;color:#bbb;font-size:.9rem}
+input[type=password]{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:0;background:#2a2a2a;color:#fff;margin-bottom:12px}
+label{display:flex;gap:8px;align-items:center;justify-content:center;font-size:.9rem;margin-bottom:12px}
+button{width:100%;padding:12px;border:0;background:#C8102E;color:#fff;font-weight:700;font-size:1rem;text-transform:uppercase;cursor:pointer}
+#bbw-msg{min-height:1.2em;margin:10px 0 0;color:#ff8a8a}
+</style>
+</head>
+<body>
+<form id="bbw-form">
+<h1>Blindboy Walkclub</h1>
+<p>Enter the password to open the walk.</p>
+<input id="bbw-pw" type="password" placeholder="Password" autocomplete="current-password" autofocus>
+<label><input id="bbw-remember" type="checkbox"> Remember me (30 days)</label>
+<button id="bbw-go" type="submit">Open</button>
+<p id="bbw-msg" aria-live="polite"></p>
+</form>
+<script src="c0.js"></script>
+<script src="c1.js"></script>
+<script src="c2.js"></script>
+<script src="c3.js"></script>
+<script src="c4.js"></script>
+<script src="c5.js"></script>
+<script>
+(()=>{const SALT="4fb51c7d21363566d2cb346ff93b31bb",IV="1e0032e47e17e46e9c5d6d05",K="bbw-key",X="bbw-exp",S=crypto.subtle;
+const CT=(window.__CT||[]).join("");
+const h2b=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
+const b2h=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
+async function dec(raw){const k=await S.importKey("raw",h2b(raw),"AES-GCM",false,["decrypt"]);
+const pt=await S.decrypt({name:"AES-GCM",iv:h2b(IV)},k,Uint8Array.from(atob(CT),c=>c.charCodeAt(0)));
+return new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream("gzip"))).text()}
+function show(t){document.open();document.write(t);document.close()}
+async function derive(pw){const b=await S.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+const k=await S.deriveKey({name:"PBKDF2",hash:"SHA-256",salt:h2b(SALT),iterations:600000},b,{name:"AES-GCM",length:256},true,["decrypt"]);
+return b2h(await S.exportKey("raw",k))}
+function forget(){localStorage.removeItem(K);localStorage.removeItem(X)}
+(async()=>{if(/logout/.test(location.search+location.hash)){forget();return}
+const r=localStorage.getItem(K),e=+localStorage.getItem(X);
+if(r&&e>Date.now()){try{show(await dec(r))}catch(_){forget()}}else forget()})();
+document.getElementById("bbw-form").addEventListener("submit",async ev=>{ev.preventDefault();
+const m=document.getElementById("bbw-msg");m.textContent="Unlocking…";let t,raw;
+try{raw=await derive(document.getElementById("bbw-pw").value);t=await dec(raw)}catch(_){m.textContent="Wrong password — try again.";return}
+if(document.getElementById("bbw-remember").checked){localStorage.setItem(K,raw);localStorage.setItem(X,Date.now()+2592e6)}
+show(t)})})();
+</script>
+</body>
+</html>
