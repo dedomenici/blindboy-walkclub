@@ -33,7 +33,7 @@ button{width:100%;padding:12px;border:0;background:#C8102E;color:#fff;font-weigh
 <script src="c4.js"></script>
 <script src="c5.js"></script>
 <script>
-(()=>{const SALT="4fb51c7d21363566d2cb346ff93b31bb",IV="c63f58cfa6e305080047be03",K="bbw-key",X="bbw-exp",S=crypto.subtle;
+(()=>{const SALT="129753104d21e5d0e6d8c0f647a8ddb6",IV="81897d00780d6b6e03116bba",K="bbw-key",X="bbw-exp",S=crypto.subtle;
 const CT=(window.__CT||[]).join("");
 const h2b=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
 const b2h=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
@@ -50,7 +50,7 @@ const r=localStorage.getItem(K),e=+localStorage.getItem(X);
 if(r&&e>Date.now()){try{show(await dec(r))}catch(_){forget()}}else forget()})();
 document.getElementById("bbw-form").addEventListener("submit",async ev=>{ev.preventDefault();
 const m=document.getElementById("bbw-msg");m.textContent="Unlocking…";let t,raw;
-try{raw=await derive(document.getElementById("bbw-pw").value);t=await dec(raw)}catch(_){m.textContent="Wrong password — try again.";return}
+try{raw=await derive((v=>(v=v.trim(),v.charAt(0).toUpperCase()+v.slice(1).toLowerCase()))(document.getElementById("bbw-pw").value));t=await dec(raw)}catch(_){m.textContent="Wrong password — try again.";return}
 if(document.getElementById("bbw-remember").checked){localStorage.setItem(K,raw);localStorage.setItem(X,Date.now()+2592e6)}
 show(t)})})();
 </script>
